@@ -22,7 +22,6 @@ class ScraperBot:
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
 
-        # Set up the Chrome driver using WebDriverManager
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
         url = "https://securityboulevard.com/security-creators-network/"
@@ -30,15 +29,12 @@ class ScraperBot:
         try:
             driver.get(url)
 
-            # Wait for the first article link
             wait = WebDriverWait(driver, 15)
             first_article_link = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.pt-cv-title a.panel-title')))
             
-            # Get the article title and link
             title = first_article_link.text.split("\n")[0]
             link = first_article_link.get_attribute('href')
 
-            # Get the article date
             article_date_element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, '.entry-date time')))
             date = article_date_element.get_attribute('datetime')
 
