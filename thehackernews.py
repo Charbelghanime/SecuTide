@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import asyncio
 import telegram
 import os
-from test import init_database, send_message_to_telegram_channel, is_article_sent, mark_article_as_sent
+from main import init_database, send_message_to_telegram_channel, is_article_sent, mark_article_as_sent
 
 # Get bot token and chat ID from environment variables
 bot_token = os.getenv('TELEGRAM_BOT_TOKEN')  # Use environment variable for the bot token
