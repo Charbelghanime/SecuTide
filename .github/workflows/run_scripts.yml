@@ -4,7 +4,6 @@ name: Run Python Scripts
 on:
   schedule:
     - cron: "*/30 * * * *"
-
   workflow_dispatch:
 
 jobs:
@@ -25,6 +24,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Restore cached database
+      uses: actions/cache@v3
+      with:
+        path: sent_articles.db
+        key: db-cache-${{ github.ref }}
+
     - name: Run Securityboulevard script
       run: python Securityboulevard.py
 
@@ -42,6 +47,12 @@ jobs:
 
     - name: Run thehackernews script
       run: python thehackernews.py
-      
+
     - name: Run cybernew script
       run: python cybernew.py
+
+    - name: Save updated database to cache
+      uses: actions/cache@v3
+      with:
+        path: sent_articles.db
+        key: db-cache-${{ github.ref }}
