@@ -3,6 +3,7 @@ import asyncio
 import telegram
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -18,23 +19,22 @@ async def send_message_to_telegram_channel(message):
     await telegram_bot.send_message(message)
 
 def scrape_latest_cybersecurity_news():
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     url = "https://www.securityweek.com/"
     
     try:
         driver.get(url)
         wait = WebDriverWait(driver, 10)
-        
         first_article_link = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.zox-art-title a')))
-        
         title = first_article_link.text
         link = first_article_link.get_attribute('href')
-        
         first_article_link.click()
-
         time.sleep(2)
-        
         try:
             article_date = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'time'))).text
         except TimeoutException:
@@ -52,6 +52,7 @@ def scrape_latest_cybersecurity_news():
     
     finally:
         driver.quit() 
+
 async def main():
     db_manager.create_table() 
     article_info = scrape_latest_cybersecurity_news() 
