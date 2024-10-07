@@ -39,6 +39,7 @@ class DatabaseManager:
             conn.execute('INSERT INTO sent_articles (link) VALUES (?)', (link,))
         conn.close()
 
+
 class TelegramBot:
     def __init__(self):
         self.bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
