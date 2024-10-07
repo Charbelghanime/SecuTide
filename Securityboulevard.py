@@ -4,12 +4,13 @@ import telegram
 import os 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from main import create_table, is_article_sent, mark_article_as_sent 
+from main import create_table, is_article_sent, mark_article_as_sent  
 
 # Telegram bot configuration
 bot_token = os.getenv('TELEGRAM_BOT_TOKEN')  # Use environment variable for the bot token
@@ -20,8 +21,12 @@ async def send_message_to_telegram_channel(message):
     await bot.send_message(chat_id=bot_chat_id, text=message)
 
 def scrape_security_boulevard_article():
-    # Set up the Chrome driver using WebDriverManager
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
     url = "https://securityboulevard.com/security-creators-network/"
     
@@ -52,18 +57,19 @@ def scrape_security_boulevard_article():
         return None
     
     finally:
-        driver.quit() 
+        driver.quit()  # Ensure the browser is closed
 
 async def main():
-    create_table()
-    article_info = scrape_security_boulevard_article()
+    create_table() 
+    article_info = scrape_security_boulevard_article()  
+    
     if article_info:
         message = f"Title: {article_info['Title']}\nLink: {article_info['Link']}\nDate: {article_info['Date']}\nSource: Security Boulevard"
         link = article_info['Link']
         
-        if not is_article_sent(link):
-            await send_message_to_telegram_channel(message)
-            mark_article_as_sent(link)
+        if not is_article_sent(link): 
+            await send_message_to_telegram_channel(message)  # Send message to Telegram
+            mark_article_as_sent(link)  # Mark the article as sent in the database
         else:
             print("Article already sent.")
 
