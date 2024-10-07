@@ -23,11 +23,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Restore cached database
-      uses: actions/cache@v3
+    - name: Restore database artifact
+      uses: actions/download-artifact@v3
       with:
+        name: sent_articles_db
         path: sent_articles.db
-        key: db-cache-${{ github.ref }}
+      continue-on-error: true  # Allow this step to continue even if there's no previous artifact
 
     - name: Run Securityboulevard script
       run: python Securityboulevard.py
@@ -71,8 +72,8 @@ jobs:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
-    - name: Save updated database to cache
-      uses: actions/cache@v3
+    - name: Upload database as artifact
+      uses: actions/upload-artifact@v3
       with:
+        name: sent_articles_db
         path: sent_articles.db
-        key: db-cache-${{ github.ref }}
