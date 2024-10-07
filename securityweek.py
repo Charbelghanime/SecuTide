@@ -8,19 +8,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-import os 
-from main import create_table, is_article_sent, mark_article_as_sent 
+import os
+from main import DatabaseManager, TelegramBot 
 
-# Telegram bot configuration (using environment variables for sensitive data)
-bot_token = os.getenv('TELEGRAM_BOT_TOKEN')  # Set as environment variable
-bot_chat_id = os.getenv('TELEGRAM_CHAT_ID')  # Set as environment variable
-bot = telegram.Bot(token=bot_token)
+db_manager = DatabaseManager()
+telegram_bot = TelegramBot()
 
 async def send_message_to_telegram_channel(message):
-    await bot.send_message(chat_id=bot_chat_id, text=message)
+    await telegram_bot.send_message(message)
 
 def scrape_latest_cybersecurity_news():
-    # Set up the Chrome driver using WebDriverManager
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
 
     url = "https://www.securityweek.com/"
@@ -29,7 +26,6 @@ def scrape_latest_cybersecurity_news():
         driver.get(url)
         wait = WebDriverWait(driver, 10)
         
-        # Locate the first article link under the "Latest Cybersecurity News" section
         first_article_link = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.zox-art-title a')))
         
         title = first_article_link.text
@@ -55,19 +51,18 @@ def scrape_latest_cybersecurity_news():
         return None
     
     finally:
-        driver.quit()  # Ensure the browser is closed
-
+        driver.quit() 
 async def main():
-    create_table() 
+    db_manager.create_table() 
     article_info = scrape_latest_cybersecurity_news() 
     
     if article_info:
         message = f"Title: {article_info['Title']}\nLink: {article_info['Link']}\nDate: {article_info['Date']}\nSource: SecurityWeek"
         link = article_info['Link']
         
-        if not is_article_sent(link): 
+        if not db_manager.is_article_sent(link):  
             await send_message_to_telegram_channel(message)
-            mark_article_as_sent(link)
+            db_manager.mark_article_as_sent(link) 
         else:
             print("Article already sent.")
 
