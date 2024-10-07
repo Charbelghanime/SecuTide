@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from main import DatabaseManager, TelegramBot  # Import your main classes
+from main import DatabaseManager, TelegramBot 
 
 class ScraperBot:
     def __init__(self):
