@@ -1,6 +1,5 @@
 import sqlite3
 import telegram
-import asyncio
 import os
 
 class DatabaseManager:
