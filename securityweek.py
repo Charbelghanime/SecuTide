@@ -24,10 +24,10 @@ class ScraperBot:
     def scrape_latest_cybersecurity_news(self):
         """Scrape the latest cybersecurity news from SecurityWeek."""
         chrome_options = Options()
-        chrome_options.add_argument("--headless")  # Run in headless mode
-        chrome_options.add_argument("--no-sandbox")  # Overcome limited resource problems
-        chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
-        chrome_options.add_argument("--remote-debugging-port=9222")  # Debugging port
+        chrome_options.add_argument("--headless")  
+        chrome_options.add_argument("--no-sandbox")  
+        chrome_options.add_argument("--disable-dev-shm-usage")  
+        chrome_options.add_argument("--remote-debugging-port=9222") 
         
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         url = "https://www.securityweek.com/"
@@ -39,7 +39,7 @@ class ScraperBot:
             title = first_article_link.text
             link = first_article_link.get_attribute('href')
             first_article_link.click()
-            time.sleep(2)  # Wait for the article page to load
+            time.sleep(2)  
 
             try:
                 article_date = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'time'))).text
