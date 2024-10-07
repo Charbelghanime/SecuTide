@@ -1,2 +1,2 @@
 # SecuTide
-Your automated daily cybersecurity channel news.
+Your automated Telegram daily cybersecurity channel news.
