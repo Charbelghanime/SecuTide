@@ -1,82 +1,87 @@
-name: Run Python Scripts
+name: Run Python Scripts and Update Database
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
-  workflow_dispatch:
+    - cron: "*/30 * * * *"  
+  workflow_dispatch:  
 
 jobs:
   run-scripts:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}  
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.12.3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.12.3
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      - name: Restore database artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: sent_articles_db
-          path: sent_articles.db
-          continue-on-error: true
+    - name: Run Securityboulevard script
+      run: python Securityboulevard.py
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      continue-on-error: true
 
-      - name: Run Securityboulevard script
-        run: python Securityboulevard.py
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    - name: Run csoonline script
+      run: python csoonline.py
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      continue-on-error: true
 
-      - name: Run csoonline script
-        run: python csoonline.py
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    - name: Run cybernews script
+      run: python cybernews.py
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      continue-on-error: true
 
-      - name: Run cybernews script
-        run: python cybernews.py
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    - name: Run helpnetsecurity script
+      run: python helpnetsecurity.py
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      continue-on-error: true
 
-      - name: Run helpnetsecurity script
-        run: python helpnetsecurity.py
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    - name: Run securityweek script
+      run: python securityweek.py
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      continue-on-error: true
 
-      - name: Run securityweek script
-        run: python securityweek.py
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    - name: Run thehackernews script
+      run: python thehackernews.py
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      continue-on-error: true
 
-      - name: Run thehackernews script
-        run: python thehackernews.py
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    - name: Run cybernew script
+      run: python cybernew.py
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      continue-on-error: true
 
-      - name: Run cybernew script
-        run: python cybernew.py
-        env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-
-      - name: List files in current directory
-        run: ls -la
-
-      - name: Upload updated database as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sent_articles_db
-          path: sent_articles.db
+    - name: Commit changes
+      run: |
+        git config --global user.email "${{ secrets.USER_EMAIL }}"  # Using the secret email variable
+        git config --global user.name "GitHub Action"
+        git add sent_articles.db
+        git commit -m "Update sent_articles.db with new articles" || echo "No changes to commit"
+      continue-on-error: true  
+      
+    - name: Push changes
+      run: git push origin main
+      continue-on-error: true 
