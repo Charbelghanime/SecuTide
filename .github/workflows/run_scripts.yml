@@ -2,8 +2,8 @@ name: Run Python Scripts
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
-  workflow_dispatch:
+    - cron: "*/30 * * * *"  
+  workflow_dispatch:  
 
 jobs:
   run-scripts:
@@ -27,9 +27,10 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: sent_articles_db
-        path: sent_articles.db
-      continue-on-error: true  # Allow this step to continue even if there's no previous artifact
+        path: sent_articles.db 
+      continue-on-error: true  
 
+  
     - name: Run Securityboulevard script
       run: python Securityboulevard.py
       env:
@@ -72,6 +73,9 @@ jobs:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
+    - name: List files in current directory
+      run: ls -la  
+      
     - name: Upload updated database as artifact
       uses: actions/upload-artifact@v3
       with:
