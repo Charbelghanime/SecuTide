@@ -1,10 +1,6 @@
+import undetected_chromedriver as uc
 import time
 import asyncio
-import os
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -17,11 +13,12 @@ class ScraperBot:
         self.telegram_bot = TelegramBot()
 
     def scrape_cybernews_article(self):
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        options = uc.ChromeOptions()
+        options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+
+        driver = uc.Chrome(options=options)
 
         url = "https://cybernews.com/"
 
@@ -31,14 +28,12 @@ class ScraperBot:
 
             first_article = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.cells__item a.link.heading')))
             driver.execute_script("arguments[0].scrollIntoView();", first_article)
-            
             first_article.click()
 
-            time.sleep(3) 
-            title = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'h1'))).text
+            time.sleep(3)  
 
+            title = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'h1'))).text
             date = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'time'))).get_attribute('datetime')
-            
             article_link = driver.current_url
 
             return {
@@ -49,7 +44,6 @@ class ScraperBot:
 
         except TimeoutException:
             print("Timeout waiting for page elements.")
-            print(driver.page_source) 
             return None
 
         except Exception as e:
@@ -57,7 +51,8 @@ class ScraperBot:
             return None
 
         finally:
-            driver.quit()  
+            driver.quit()
+
     async def process_article(self):
         article_info = self.scrape_cybernews_article()
         if article_info:
