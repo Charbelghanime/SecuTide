@@ -1,10 +1,9 @@
-name: Run Python Scripts and Update Database
+name: Run Python Scripts and Update Encrypted Database
 
 on:
   schedule:
     - cron: "*/30 * * * *"  
   workflow_dispatch:  
-
 jobs:
   run-scripts:
     runs-on: ubuntu-latest
@@ -20,6 +19,11 @@ jobs:
       with:
         python-version: 3.12.3
 
+    - name: Decrypt sent_articles.db
+      run: |
+        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.GPG_PASSPHRASE }}" \
+        --output sent_articles.db sent_articles.db.gpg
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -30,58 +34,56 @@ jobs:
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      continue-on-error: true
 
     - name: Run csoonline script
       run: python csoonline.py
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      continue-on-error: true
 
     - name: Run cybernews script
       run: python cybernews.py
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      continue-on-error: true
 
     - name: Run helpnetsecurity script
       run: python helpnetsecurity.py
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      continue-on-error: true
 
     - name: Run securityweek script
       run: python securityweek.py
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      continue-on-error: true
 
     - name: Run thehackernews script
       run: python thehackernews.py
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      continue-on-error: true
 
     - name: Run cybernew script
       run: python cybernew.py
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      continue-on-error: true
+
+    - name: Re-encrypt sent_articles.db
+      run: |
+        gpg --symmetric --cipher-algo AES256 --batch --yes --passphrase "${{ secrets.GPG_PASSPHRASE }}" \
+        --output sent_articles.db.gpg sent_articles.db
 
     - name: Commit changes
       run: |
-        git config --global user.email "${{ secrets.USER_EMAIL }}"  # Using the secret email variable
+        git config --global user.email "${{ secrets.USER_EMAIL }}"  # Use your GitHub email (stored as secret)
         git config --global user.name "GitHub Action"
-        git add sent_articles.db
-        git commit -m "Update sent_articles.db with new articles" || echo "No changes to commit"
+        git add sent_articles.db.gpg
+        git commit -m "Update encrypted sent_articles.db" || echo "No changes to commit"
       continue-on-error: true  
-      
+
     - name: Push changes
       run: git push origin main
-      continue-on-error: true 
+      continue-on-error: true  
