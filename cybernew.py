@@ -21,24 +21,24 @@ class ScraperBot:
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-
-        # Set up the Chrome driver using WebDriverManager
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
         url = "https://cybernews.com/"
 
         try:
             driver.get(url)
-            wait = WebDriverWait(driver, 10)
-            first_article = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div.cells__item a.link.heading')))
+            wait = WebDriverWait(driver, 20)  
 
+            first_article = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.cells__item a.link.heading')))
             driver.execute_script("arguments[0].scrollIntoView();", first_article)
-
+            
             first_article.click()
 
-            time.sleep(2)
+            time.sleep(3) 
             title = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'h1'))).text
-            date = driver.find_element(By.TAG_NAME, 'time').get_attribute('datetime')
+
+            date = wait.until(EC.presence_of_element_located((By.TAG_NAME, 'time'))).get_attribute('datetime')
+            
             article_link = driver.current_url
 
             return {
@@ -49,6 +49,7 @@ class ScraperBot:
 
         except TimeoutException:
             print("Timeout waiting for page elements.")
+            print(driver.page_source) 
             return None
 
         except Exception as e:
@@ -56,8 +57,7 @@ class ScraperBot:
             return None
 
         finally:
-            driver.quit()  # Ensure the browser is closed
-
+            driver.quit()  
     async def process_article(self):
         article_info = self.scrape_cybernews_article()
         if article_info:
