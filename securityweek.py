@@ -10,7 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, WebDriverException
 import os
-from main import DatabaseManager, TelegramBot 
+from main import DatabaseManager, TelegramBot
 
 class ScraperBot:
     def __init__(self):
@@ -27,20 +27,27 @@ class ScraperBot:
         chrome_options.add_argument("--headless")  
         chrome_options.add_argument("--no-sandbox")  
         chrome_options.add_argument("--disable-dev-shm-usage")  
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--window-size=1920x1080")
         chrome_options.add_argument("--remote-debugging-port=9222") 
         
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        try:
+            driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        except WebDriverException as wd_error:
+            print(f"WebDriver Error: {wd_error}")
+            return None
+
         url = "https://www.securityweek.com/"
         
         try:
             driver.get(url)
-            wait = WebDriverWait(driver, 10)
+            wait = WebDriverWait(driver, 15) 
             first_article_link = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.zox-art-title a')))
             title = first_article_link.text
             link = first_article_link.get_attribute('href')
             first_article_link.click()
-            time.sleep(2)  
-
+            time.sleep(3) 
+            
             try:
                 article_date = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'time'))).text
             except TimeoutException:
