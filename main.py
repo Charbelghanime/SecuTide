@@ -4,12 +4,12 @@ import os
 
 class DatabaseManager:
     def __init__(self, db_name='sent_articles.db'):
-        self.db_name = db_name
+        self.db_path = os.path.join(os.getcwd(), db_name)
         self.create_table()
 
     def create_connection(self):
         """Create a connection to the SQLite database."""
-        return sqlite3.connect(self.db_name)
+        return sqlite3.connect(self.db_path)
 
     def create_table(self):
         """Create the `sent_articles` table if it does not exist."""
